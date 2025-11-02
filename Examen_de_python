@@ -1,0 +1,204 @@
+# ==========================================
+# SISTEMA DE REGISTRO PARA GRANJA DE POLLOS
+# ==========================================
+
+# ---------- CLASE PRINCIPAL ----------
+class Animal:
+    """Representa un pollo dentro de la granja."""
+    
+    def __init__(self, codigo, raza, edad):
+        # Constructor: se ejecuta al crear un nuevo objeto de tipo Animal
+        # Atributos del animal
+        self.codigo = codigo       # Código único para identificar el pollo
+        self.raza = raza           # Raza del pollo
+        self.edad = edad           # Edad en años
+        self.produccion = []       # Lista para guardar huevos producidos semanalmente
+
+    def agregar_produccion(self, huevos):
+        """Registra la cantidad de huevos producidos en una semana."""
+        self.produccion.append(huevos)  # Agrega el número de huevos a la lista de producción
+
+    def total_huevos(self):
+        """Calcula el total de huevos producidos por este animal."""
+        return sum(self.produccion)  # Suma todos los valores de la lista producción
+
+    def mostrar_info(self):
+        """Muestra la información del animal en consola."""
+        print(f"Código: {self.codigo} | Raza: {self.raza} | Edad: {self.edad} años | Producción total: {self.total_huevos()} huevos")
+
+
+# ---------- CLASE BASE DE DATOS ----------
+class BaseDatos:
+    """Gestiona el registro de animales y su producción."""
+    
+    def __init__(self):
+        # Constructor: crea una lista vacía donde se almacenarán los animales registrados
+        self.animales = []
+
+    # ---- CRUD DE ANIMALES ----
+    def crear_animal(self):
+        """Crea (C) un nuevo animal en el sistema."""
+        print("\n--- Registrar Nuevo Animal ---")
+        codigo = input("Código único: ")
+        
+        # Verifica si ya existe un animal con ese mismo código
+        if any(a.codigo == codigo for a in self.animales):
+            print("Ya existe un animal con ese código.")
+            return  # Sale de la función
+        
+        # Solicita los demás datos
+        raza = input("Raza del pollo: ")
+        edad = int(input("Edad en años: "))
+
+        # Crea un nuevo objeto de tipo Animal
+        nuevo = Animal(codigo, raza, edad)
+        self.animales.append(nuevo)  # Lo agrega a la lista de animales
+        print("Animal registrado correctamente.")
+
+    def consultar_animales(self):
+        """Lee (R) los animales registrados."""
+        print("\n--- Lista de Animales Registrados ---")
+        
+        # Verifica si hay animales
+        if not self.animales:
+            print("No hay animales registrados.")
+            return
+        
+        # Recorre la lista y muestra la información de cada animal
+        for a in self.animales:
+            a.mostrar_info()
+
+    def actualizar_animal(self):
+        """Actualiza (U) los datos de un animal existente."""
+        print("\n--- Actualizar Datos del Animal ---")
+        codigo = input("Ingrese el código del animal a actualizar: ")
+        
+        # Busca el animal en la lista usando una expresión generadora
+        animal = next((a for a in self.animales if a.codigo == codigo), None)
+        
+        if not animal:
+            print("Animal no encontrado.")
+            return
+        
+        # Permite dejar campos vacíos si no se desea cambiar algo
+        print("Deje vacío cualquier campo que no desee modificar.")
+        nueva_raza = input("Nueva raza: ") or animal.raza
+        nueva_edad = input("Nueva edad: ")
+        
+        # Actualiza los datos (solo si se escribieron)
+        animal.raza = nueva_raza
+        animal.edad = int(nueva_edad) if nueva_edad else animal.edad
+        print("Datos actualizados correctamente.")
+
+    def eliminar_animal(self):
+        """Elimina (D) un animal del sistema."""
+        print("\n--- Eliminar Animal ---")
+        codigo = input("Ingrese el código del animal a eliminar: ")
+        
+        # Busca el animal por código
+        animal = next((a for a in self.animales if a.codigo == codigo), None)
+        
+        if animal:
+            # Si se encuentra, se elimina con remove()
+            self.animales.remove(animal)
+            print("Animal eliminado correctamente.")
+        else:
+            print("No se encontró un animal con ese código.")
+
+    # ---- REGISTRO DE PRODUCCIÓN ----
+    def registrar_produccion(self):
+        """Permite agregar producción semanal de huevos para un animal."""
+        print("\n--- Registrar Producción Semanal ---")
+        codigo = input("Código del animal: ")
+        
+        # Busca el animal por su código
+        animal = next((a for a in self.animales if a.codigo == codigo), None)
+        
+        if not animal:
+            print("No existe un animal con ese código.")
+            return
+        
+        # Solicita la cantidad de huevos producidos en la semana
+        huevos = int(input("Cantidad de huevos producidos esta semana: "))
+        
+        # Llama al método agregar_produccion() del objeto Animal
+        animal.agregar_produccion(huevos)
+        print("Producción registrada correctamente.")
+
+    def consultar_produccion(self):
+        """Consulta la producción semanal y total de un animal."""
+        print("\n--- Consultar Producción de un Animal ---")
+        codigo = input("Código del animal: ")
+        
+        # Busca el animal por código
+        animal = next((a for a in self.animales if a.codigo == codigo), None)
+        
+        if not animal:
+            print("Animal no encontrado.")
+            return
+        
+        print(f"\nProducción del animal {codigo}:")
+        
+        # Si el animal no tiene registros de producción
+        if not animal.produccion:
+            print("No hay registros de producción aún.")
+        else:
+            # Recorre la lista de producción y muestra semana por semana
+            for i, huevos in enumerate(animal.produccion, 1):
+                print(f"Semana {i}: {huevos} huevos")
+            
+            # Llama al método total_huevos() para mostrar el total
+            print(f"Total: {animal.total_huevos()} huevos")
+
+
+# ---------- CLASE INTERFAZ (MENÚ) ----------
+class Interface:
+    """Interfaz que conecta al usuario con la base de datos mediante un menú."""
+    
+    def __init__(self):
+        # Crea un objeto de tipo BaseDatos
+        self.bd = BaseDatos()
+
+    def menu(self):
+        """Muestra el menú principal del sistema y controla la interacción."""
+        while True:
+            # Muestra las opciones principales del sistema
+            print("\n=== SISTEMA DE REGISTRO DE GRANJA DE POLLOS ===")
+            print("1. Registrar nuevo animal")
+            print("2. Consultar animales")
+            print("3. Actualizar datos de un animal")
+            print("4. Eliminar animal")
+            print("5. Registrar producción semanal")
+            print("6. Consultar producción de un animal")
+            print("7. Salir")
+            
+            # Captura la elección del usuario
+            opcion = input("Seleccione una opción: ")
+
+            # Control de flujo con condicionales
+            if opcion == "1":
+                self.bd.crear_animal()              # Crear
+            elif opcion == "2":
+                self.bd.consultar_animales()        # Leer
+            elif opcion == "3":
+                self.bd.actualizar_animal()         # Actualizar
+            elif opcion == "4":
+                self.bd.eliminar_animal()           # Eliminar
+            elif opcion == "5":
+                self.bd.registrar_produccion()      # Registrar huevos
+            elif opcion == "6":
+                self.bd.consultar_produccion()      # Consultar huevos
+            elif opcion == "7":
+                print("Saliendo del sistema... ")
+                break  # Finaliza el bucle y sale del programa
+            else:
+                print("Opción inválida. Intente de nuevo.")  # Manejo de errores de entrada
+
+
+# ---------- EJECUCIÓN PRINCIPAL ----------
+# Este bloque se ejecuta solo si el archivo se ejecuta directamente (no si se importa)
+if __name__ == "__main__":
+    # Crea el objeto principal de la clase Interface
+    app = Interface()
+    # Llama al método menu() para iniciar el programa
+    app.menu()
